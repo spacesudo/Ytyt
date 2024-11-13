@@ -45,7 +45,7 @@ def predict_future_prices(df: pd.DataFrame, days_to_predict: int):
         df (pd.DataFrame): DataFrame with historical OHLC prices.
         days_to_predict (int): Number of days to predict.
     Returns:
-        pd.DataFrame: Predicted dates and prices for the specified number of days.
+        dict: Predicted prices with dates as keys and prices as values.
     """
     # Use only 'close' price for prediction
     df['close_shifted'] = df['close'].shift(-1)
@@ -67,17 +67,17 @@ def predict_future_prices(df: pd.DataFrame, days_to_predict: int):
     print(f"Model RMSE: {rmse}")
 
     # Multi-day prediction
-    predictions = []
+    predictions = {}
     last_date = df['timestamp'].iloc[-1]  # Get the last available date
     current_input = pd.DataFrame([X.iloc[-1].values], columns=['close'])  # Wrap the input in a DataFrame
 
     for i in range(days_to_predict):
         next_prediction = model.predict(current_input)[0]
         next_date = last_date + timedelta(days=i + 1)  # Increment date
-        predictions.append({"date": next_date, "predicted_price": next_prediction})
+        predictions[next_date.strftime('%Y-%m-%d')] = next_prediction
         current_input = pd.DataFrame([[next_prediction]], columns=['close'])  # Update input as DataFrame
 
-    return pd.DataFrame(predictions)
+    return predictions
     
     
 ohlc_data = fetch_ohlc_data(coin_id="bitcoin", days=30)  # Fetch 30 days of OHLC data
@@ -85,3 +85,5 @@ predicted_prices = predict_future_prices(ohlc_data, days_to_predict=5)  # Predic
 
 print("Predicted Prices for the Next 5 Days:")
 print(predicted_prices)
+for i,y in predicted_prices.item():
+    print(f"{i} : {y}")
