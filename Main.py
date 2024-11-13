@@ -7,7 +7,7 @@ import numpy as np
 from datetime import timedelta
 
 # Function to fetch OHLC data with headers
-def fetch_ohlc_data(days: int = 90):
+def fetch_ohlc_data(coin, days: int = 90):
     """
     Fetch OHLC data for Bitcoin from CoinGecko API with headers.
     Args:
@@ -15,7 +15,7 @@ def fetch_ohlc_data(days: int = 90):
     Returns:
         pd.DataFrame: OHLC data.
     """
-    url = "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart"
+    url = f"https://api.coingecko.com/api/v3/coins/{coin}/market_chart"
     params = {
         "vs_currency": "usd",
         "days": str(days),
@@ -81,7 +81,7 @@ def predict_future_prices(df: pd.DataFrame, days_to_predict: int):
     return pd.DataFrame(predictions)
 
 # Fetch data and make predictions
-ohlc_data = fetch_ohlc_data(days=90)
+ohlc_data = fetch_ohlc_data("solana", days=90)
 predicted_prices = predict_future_prices(ohlc_data, days_to_predict=5)
 
 print("Predicted Prices for the Next 5 Days:")
