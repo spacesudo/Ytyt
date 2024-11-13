@@ -22,8 +22,8 @@ def fetch_ohlc_data(days: int = 90):
         "interval": "daily"
     }
     headers = {
-        "User-Agent": "CryptoPredictor/1.0",  # Replace with your app details if necessary
-        # Add any other necessary headers here (e.g., API keys if required)
+      "accept": "application/json",
+      "x-cg-demo-api-key": "CG-PoMurepErqHySZn6VjNbxvND"
     }
     response = requests.get(url, params=params, headers=headers)
     
