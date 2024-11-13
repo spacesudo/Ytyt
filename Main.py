@@ -6,37 +6,36 @@ from sklearn.metrics import mean_squared_error
 import numpy as np
 from datetime import timedelta
 
-# Function to fetch OHLC data with headers
-def fetch_ohlc_data(coin, days: int = 90):
+# Function to fetch OHLC data using the updated endpoint and headers
+def fetch_ohlc_data(coin_id: str = "bitcoin", days: int = 1):
     """
-    Fetch OHLC data for Bitcoin from CoinGecko API with headers.
+    Fetch OHLC data for a cryptocurrency from CoinGecko API.
     Args:
-        days (int): Number of past days to fetch data.
+        coin_id (str): The ID of the cryptocurrency (e.g., 'bitcoin').
+        days (int): Number of days to fetch OHLC data for.
     Returns:
-        pd.DataFrame: OHLC data.
+        pd.DataFrame: OHLC data with columns ['timestamp', 'open', 'high', 'low', 'close'].
     """
-    url = f"https://api.coingecko.com/api/v3/coins/{coin}/market_chart"
+    url = f"https://api.coingecko.com/api/v3/coins/{coin_id}/ohlc"
     params = {
         "vs_currency": "usd",
-        "days": str(days),
-        "interval": "daily"
+        "days": str(days)
     }
     headers = {
-      "accept": "application/json",
-      "x-cg-demo-api-key": "CG-PoMurepErqHySZn6VjNbxvND"
+        "accept": "application/json",
+        "x-cg-demo-api-key": "CG-PoMurepErqHySZn6VjNbxvND"  # Updated headers with API key
     }
     response = requests.get(url, params=params, headers=headers)
     
     # Check for errors
     if response.status_code != 200:
         raise Exception(f"Error fetching data: {response.status_code} - {response.text}")
-
+    
     data = response.json()
     
     # Parse OHLC data
-    prices = data.get('prices', [])
-    df = pd.DataFrame(prices, columns=["timestamp", "close"])
-    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+    df = pd.DataFrame(data, columns=["timestamp", "open", "high", "low", "close"])
+    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')  # Convert timestamp
     return df
 
 # Multi-day prediction function
@@ -44,11 +43,12 @@ def predict_future_prices(df: pd.DataFrame, days_to_predict: int):
     """
     Predict future prices for a given number of days.
     Args:
-        df (pd.DataFrame): DataFrame with historical prices.
+        df (pd.DataFrame): DataFrame with historical OHLC prices.
         days_to_predict (int): Number of days to predict.
     Returns:
         pd.DataFrame: Predicted dates and prices for the specified number of days.
     """
+    # Use only 'close' price for prediction
     df['close_shifted'] = df['close'].shift(-1)
     df.dropna(inplace=True)
 
@@ -81,8 +81,8 @@ def predict_future_prices(df: pd.DataFrame, days_to_predict: int):
     return pd.DataFrame(predictions)
 
 # Fetch data and make predictions
-ohlc_data = fetch_ohlc_data("solana", days=90)
-predicted_prices = predict_future_prices(ohlc_data, days_to_predict=5)
+ohlc_data = fetch_ohlc_data(coin_id="bitcoin", days=30)  # Fetch 30 days of OHLC data
+predicted_prices = predict_future_prices(ohlc_data, days_to_predict=5)  # Predict next 5 days
 
 print("Predicted Prices for the Next 5 Days:")
 print(predicted_prices)
